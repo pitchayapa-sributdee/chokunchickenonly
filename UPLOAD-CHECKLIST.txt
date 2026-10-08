@@ -1,0 +1,12 @@
+CHOKUN BIRTHDAY WEBSITE - UPLOAD CHECKLIST
+
+- Calendar/display date: 15 NOVEMBER (แฟนวันเกิด)
+- Quiz question: your birthday = 22 February (คำตอบที่ถูกต้อง)
+- Secret Letter: image shown after collecting 5 hearts
+- Image paths use relative photo/ paths for browser hosting
+- __MACOSX and .DS_Store are excluded
+
+Upload structure:
+  index.html
+  photo/
+    (all image files)

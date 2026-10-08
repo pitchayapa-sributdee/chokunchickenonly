@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y2K Birthday Console - Happy Chokun Day 👾💖</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Retro Pixel Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-lavender: #b4c5ff;
+            --bg-periwinkle: #c084fc;
+            --bg-pink: #fbcfe8;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #f472b6 100%);
+            user-select: none;
+            overflow-x: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .font-pixel-heading {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .dither-bg {
+            background-image: radial-gradient(#6366f1 0.75px, transparent 0.75px);
+            background-size: 12px 12px;
+        }
+
+        .pixel-window {
+            background-color: #f5f3ff;
+            border: 3px solid #312e81;
+            box-shadow: inset 2px 2px 0px #ffffff, inset -2px -2px 0px #818cf8, 4px 4px 0px rgba(49, 46, 129, 0.4);
+        }
+
+        .pixel-window-header {
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            border-bottom: 2px solid #312e81;
+        }
+
+        .pixel-button {
+            background-color: #e0e7ff;
+            border: 2px solid #312e81;
+            box-shadow: inset 2px 2px 0px #ffffff, inset -2px -2px 0px #6366f1, 2px 2px 0px rgba(0,0,0,0.2);
+            transition: all 0.05s ease;
+            cursor: pointer;
+        }
+
+        .pixel-button:active {
+            box-shadow: inset -2px -2px 0px #ffffff, inset 2px 2px 0px #6366f1;
+            transform: translate(1px, 1px);
+        }
+
+        .pixel-button-primary {
+            background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%);
+            color: #ffffff;
+            border: 2px solid #312e81;
+            box-shadow: inset 2px 2px 0px #d8b4fe, inset -2px -2px 0px #581c87;
+        }
+
+        .pixel-button-choice {
+            background-color: #f3e8ff;
+            border: 2px solid #312e81;
+            box-shadow: inset 2px 2px 0px #ffffff, inset -2px -2px 0px #c084fc;
+            transition: all 0.1s ease;
+        }
+
+        .pixel-button-choice:hover {
+            background-color: #fbcfe8;
+            transform: translateY(-2px);
+        }
+
+        @keyframes pixel-float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+
+        @keyframes flame-flicker {
+            0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+            50% { transform: scale(1.15) rotate(2deg); opacity: 0.85; }
+        }
+
+        .animate-pixel-float { animation: pixel-float 3s ease-in-out infinite; }
+        .animate-flame { animation: flame-flicker 0.4s ease-in-out infinite alternate; }
+
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        .food-item {
+            touch-action: none;
+            cursor: grab;
+        }
+        .food-item:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-indigo-950 relative flex flex-col justify-between selection:bg-pink-300">
+
+    <div class="fixed inset-0 pointer-events-none dither-bg opacity-40 z-0"></div>
+
+    <!-- OVERLAPPING HEARTS LAYER -->
+    <div id="overlapping-hearts-layer" class="fixed inset-0 pointer-events-none z-40"></div>
+
+    <!-- Header Taskbar -->
+    <header class="relative z-30 w-full bg-indigo-950 text-indigo-100 p-2 flex justify-between items-center border-b-4 border-indigo-900 shadow-md">
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleBootScreen()" class="pixel-button px-3 py-1 text-xs md:text-sm font-pixel-heading flex items-center space-x-2 bg-pink-300 text-indigo-950">
+                <span>👾</span>
+                <span>START</span>
+            </button>
+            <span class="text-lg md:text-xl font-bold tracking-wider text-pink-300">Y2K OS // BIRTHDAY CONSOLE v2.0</span>
+        </div>
+
+        <div class="flex items-center space-x-3 text-sm md:text-base">
+            <div id="hearts-counter" class="bg-indigo-900 border-2 border-indigo-700 px-3 py-1 rounded flex items-center space-x-1">
+                <span class="text-pink-400">💖</span>
+                <span class="font-pixel-heading text-xs text-pink-200"><span id="hearts-num">0</span>/5 HEARTS</span>
+            </div>
+            <button onclick="openModal('settings-modal')" class="pixel-button px-2 py-1 bg-indigo-200 text-indigo-950 text-sm">
+                ⚙️ SETTINGS
+            </button>
+            <div class="bg-indigo-900 px-3 py-1 rounded text-pink-300 font-mono text-xs hidden sm:block" id="system-time">00:00:00</div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="relative z-10 flex-grow p-3 md:p-6 max-w-7xl mx-auto w-full flex flex-col items-center justify-center">
+
+        <!-- BOOT / PRESS START OVERLAY -->
+        <div id="boot-screen" class="fixed inset-0 z-50 bg-indigo-950 flex flex-col items-center justify-center p-4">
+            <div class="relative w-full max-w-2xl pixel-window p-6 md:p-10 text-center flex flex-col items-center space-y-6">
+                <div class="w-full bg-slate-900 border-4 border-indigo-950 p-6 rounded-2xl shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[260px] bg-gradient-to-b from-indigo-900 to-purple-950">
+                    <div class="text-pink-400 font-pixel-heading text-xl md:text-3xl mb-2 animate-pixel-float tracking-widest">
+                        Y2K
+                    </div>
+                    <div class="text-indigo-200 font-pixel-heading text-sm md:text-lg mb-4">
+                        GAME CONSOLE EDITION
+                    </div>
+                    <div class="text-pink-300 text-xl md:text-2xl font-bold bg-indigo-950/80 px-4 py-2 border border-pink-400 rounded">
+                        🎂 HAPPY BIRTHDAY <span id="boot-name-display" class="text-yellow-300">MY BBY CHOKUN</span>! 🎂
+                    </div>
+                </div>
+
+                <button onclick="startQuizChallenge()" class="pixel-button pixel-button-primary px-8 py-4 font-pixel-heading text-sm md:text-xl w-full max-w-md animate-bounce">
+                    ▶ PRESS START! ◀
+                </button>
+                <span class="text-xs text-indigo-300 font-mono">CLICK TO START SECURITY QUIZ CHALLENGE! 🔐</span>
+            </div>
+        </div>
+
+        <!-- ENGLISH GATEKEEPER QUIZ MODAL -->
+        <div id="quiz-modal" class="hidden fixed inset-0 z-50 bg-indigo-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="pixel-window w-full max-w-lg p-0 shadow-2xl relative">
+                <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                    <span class="font-pixel-heading text-xs">🔐 PASSCODE_VERIFICATION.EXE</span>
+                    <span class="text-xs bg-pink-400 text-indigo-950 font-bold px-2 py-0.5 rounded">QUESTION <span id="quiz-progress-num">1</span>/5</span>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div class="bg-indigo-950 text-pink-300 p-3 rounded border border-indigo-700 text-xs font-mono flex items-center space-x-2">
+                        <span>🤖 SYSTEM SECURITY:</span>
+                        <span>Answer all questions correctly to unlock system!</span>
+                    </div>
+
+                    <div class="text-center space-y-2">
+                        <h3 id="quiz-question-text" class="font-pixel-heading text-sm text-indigo-900 leading-relaxed">
+                            When is my birthday?
+                        </h3>
+                    </div>
+
+                    <div id="quiz-options-container" class="grid grid-cols-1 gap-3 pt-2"></div>
+                    <div id="quiz-feedback" class="hidden text-center p-3 font-bold text-xs rounded border"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOKE POPUP FOR PIDPEE ANSWER -->
+        <div id="pidpee-joke-modal" class="hidden fixed inset-0 z-50 bg-indigo-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="pixel-window w-full max-w-sm p-5 text-center space-y-4 animate-bounce">
+                <div class="text-5xl">😜🐈‍⬛</div>
+                <h3 class="font-pixel-heading text-sm text-pink-600">ล้อเล่นนน ก็บี๋ไงงงง 💕</h3>
+                <p class="text-xs text-indigo-950 font-bold">รักบี๋ที่สุดคนเดียวอยู่แล้ววว!</p>
+                <button onclick="closePidpeeJoke()" class="pixel-button pixel-button-primary px-6 py-2 text-xs font-pixel-heading">
+                    ไปข้อต่อไป! ▶
+                </button>
+            </div>
+        </div>
+
+        <!-- DESKTOP WORKSPACE -->
+        <div id="desktop-workspace" class="w-full grid grid-cols-1 md:grid-cols-12 gap-4 my-auto">
+            
+            <!-- Left Sidebar Shortucts -->
+            <div class="md:col-span-3 flex flex-row md:flex-col flex-wrap gap-3 justify-center md:justify-start">
+                <div onclick="openModal('cake-modal')" class="pixel-window p-3 flex flex-col items-center cursor-pointer hover:bg-pink-100 transition transform hover:-translate-y-1 w-24 md:w-full">
+                    <div class="text-3xl mb-1">🎂</div>
+                    <span class="font-pixel-heading text-[10px] text-center text-indigo-900">CAKE_WISH.EXE</span>
+                    <span class="text-[11px] text-pink-600 font-bold">Blow Candles</span>
+                </div>
+
+                <div onclick="openModal('radio-modal')" class="pixel-window p-3 flex flex-col items-center cursor-pointer hover:bg-indigo-100 transition transform hover:-translate-y-1 w-24 md:w-full">
+                    <div class="text-3xl mb-1">📻</div>
+                    <span class="font-pixel-heading text-[10px] text-center text-indigo-900">WINAMP_LOFI.PLAYER</span>
+                    <span class="text-[11px] text-indigo-600 font-bold">Play Melody</span>
+                </div>
+
+                <div onclick="openModal('game-modal')" class="pixel-window p-3 flex flex-col items-center cursor-pointer hover:bg-purple-100 transition transform hover:-translate-y-1 w-24 md:w-full">
+                    <div class="text-3xl mb-1">🕹️</div>
+                    <span class="font-pixel-heading text-[10px] text-center text-indigo-900">MEMORY_GAME.BAT</span>
+                    <span class="text-[11px] text-purple-600 font-bold">Flip Cards</span>
+                </div>
+
+                <div onclick="openModal('video-modal')" class="pixel-window p-3 flex flex-col items-center cursor-pointer hover:bg-red-100 transition transform hover:-translate-y-1 w-24 md:w-full border-2 border-red-500">
+                    <div class="text-3xl mb-1">🎬</div>
+                    <span class="font-pixel-heading text-[10px] text-center text-indigo-900">SPECIAL_VIDEO.MP4</span>
+                    <span class="text-[11px] text-red-600 font-bold">Watch Something?</span>
+                </div>
+
+                <div onclick="openModal('gift-modal')" class="pixel-window p-3 flex flex-col items-center cursor-pointer hover:bg-amber-100 transition transform hover:-translate-y-1 w-24 md:w-full">
+                    <div class="text-3xl mb-1">🎁</div>
+                    <span class="font-pixel-heading text-[10px] text-center text-indigo-900">UNBOX_PRESENT.ZIP</span>
+                    <span class="text-[11px] text-amber-700 font-bold">Open Gift</span>
+                </div>
+            </div>
+
+            <!-- Main Virtual Room Window -->
+            <div class="md:col-span-9 flex flex-col space-y-4">
+                <div class="pixel-window w-full overflow-hidden shadow-2xl">
+                    <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm">💖</span>
+                            <span class="font-pixel-heading text-xs md:text-sm tracking-wide">C:\DESKTOP\VIRTUAL_ROOM.ROOM</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-100 relative min-h-[420px] flex flex-col justify-between">
+                        
+                        <!-- Top Decor & Calendar -->
+                        <div class="relative z-10 flex justify-between items-start">
+                            <div class="flex space-x-2 text-xl">
+                                <span>🎕</span><span>💖</span><span>✦</span><span>🎕</span><span>💖</span>
+                            </div>
+
+                            <div onclick="openModal('calendar-modal')" class="pixel-window p-2 bg-white cursor-pointer hover:rotate-1 transition transform w-28 md:w-36 text-center">
+                                <div class="bg-indigo-600 text-white font-pixel-heading text-[9px] py-1 -m-2 mb-2">CALENDAR</div>
+                                <div class="text-2xl md:text-3xl font-pixel-heading text-indigo-600" id="cal-day">15</div>
+                                <div class="text-xs text-pink-600 font-bold" id="cal-month">NOVEMBER</div>
+                            </div>
+                        </div>
+
+                        <!-- CENTER: INTERACTIVE PHOTO ALBUM -->
+                        <div class="relative z-10 flex justify-center my-2">
+                            <div onclick="nextPhoto()" class="pixel-window p-2 bg-white cursor-pointer hover:scale-105 transition transform text-center max-w-[220px]">
+                                <div class="bg-pink-400 text-white font-pixel-heading text-[9px] py-0.5 -mx-2 -mt-2 mb-2">ALBUM_PHOTOS.BMP</div>
+                                <img id="album-display-img" src="photo/0FA5E3B7-B9B4-452E-8952-3E850F01E563.JPG" class="w-full h-32 object-cover border-2 border-indigo-950 rounded">
+                                <div class="text-[10px] text-indigo-800 font-bold mt-1">Click to Change Photo ✨</div>
+                            </div>
+                        </div>
+
+                        <!-- FEED PIDPEE FOOD BAR -->
+                        <div class="relative z-20 bg-white/80 backdrop-blur border-2 border-indigo-950 p-2 rounded-xl my-2 text-center">
+                            <span class="font-pixel-heading text-[9px] text-indigo-950 block mb-1">🐾 FEED PIDPEE! DRAG FOOD TO CAT 🐈‍⬛</span>
+                            <div class="flex justify-center flex-wrap gap-2 text-2xl">
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🐟')">🐟</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🥩')">🥩</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🍖')">🍖</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🦶🏻')">🦶🏻</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🪳')">🪳</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🪱')">🪱</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🦴')">🦴</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🐘')">🐘</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '💞')">💞</span>
+                                <span class="food-item select-none hover:scale-125 transition" draggable="true" ondragstart="dragFood(event, '🤦🏻‍♀️')">🤦🏻‍♀️</span>
+                            </div>
+                        </div>
+
+                        <!-- CENTER BOTTOM: CAKE, CAT PIDPEE & RADIO -->
+                        <div class="relative z-10 flex justify-around items-end pb-2">
+                            
+                            <!-- Cake -->
+                            <div onclick="openModal('cake-modal')" class="cursor-pointer group flex flex-col items-center">
+                                <div class="flex space-x-1 mb-[-2px]">
+                                    <div class="text-xs animate-flame">🔥</div>
+                                    <div class="text-xs animate-flame">🔥</div>
+                                    <div class="text-xs animate-flame">🔥</div>
+                                </div>
+                                <div class="w-16 md:w-24 h-10 md:h-14 bg-pink-300 border-2 border-indigo-900 rounded-t-xl flex items-center justify-center text-lg md:text-2xl shadow">
+                                    🍓🎂
+                                </div>
+                                <div class="pixel-button text-[10px] px-2 py-0.5 bg-pink-200 text-indigo-900 mt-1 font-bold">
+                                    Blow Cake
+                                </div>
+                            </div>
+
+                            <!-- Cat Pidpee (Drop Zone) -->
+                            <div class="relative min-w-[100px] h-20 flex items-end justify-center" ondragover="allowDrop(event)" ondrop="dropFood(event)">
+                                <div id="pidpee-cat-box" onclick="interactPidpee()" class="cursor-pointer transition-all duration-300 flex flex-col items-center group">
+                                    <div id="pidpee-speech" class="hidden text-[10px] bg-white border border-indigo-950 px-2 py-0.5 rounded-full font-bold text-pink-600 mb-1 animate-bounce">
+                                        Meow~ 🐈‍⬛💕
+                                    </div>
+                                    <div class="text-4xl md:text-5xl transform group-hover:scale-125 transition">🐈‍⬛</div>
+                                    <span class="font-pixel-heading text-[8px] bg-indigo-950 text-pink-300 px-1 py-0.5 rounded">PIDPEE 🐾</span>
+                                </div>
+                            </div>
+
+                            <!-- Radio -->
+                            <div onclick="openModal('radio-modal')" class="cursor-pointer group flex flex-col items-center">
+                                <div class="w-14 md:w-20 h-10 md:h-12 bg-indigo-200 border-2 border-indigo-900 p-1 flex flex-col items-center justify-between rounded shadow">
+                                    <div class="w-full h-1 bg-indigo-400"></div>
+                                    <div class="flex justify-between w-full text-[9px] font-mono text-indigo-900">
+                                        <span>📻</span><span>FM Y2K</span>
+                                    </div>
+                                </div>
+                                <div class="pixel-button text-[10px] px-2 py-0.5 bg-indigo-200 text-indigo-900 mt-1 font-bold">
+                                    Lo-Fi Radio
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="pixel-window p-3 flex justify-between items-center text-xs text-indigo-900 bg-indigo-50">
+                    <div class="flex items-center space-x-2">
+                        <span class="animate-pulse text-pink-500">●</span>
+                        <span class="font-bold">SYSTEM STATUS: ALL LOVE MODULES RUNNING SMOOTHLY</span>
+                    </div>
+                    <span class="hidden md:inline text-indigo-500">DRAG FOOD TO FEED PIDPEE! 🐈‍⬛</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODALS -->
+    <!-- YOUTUBE VIDEO MODAL (UPDATED LINK) -->
+    <div id="video-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-2xl p-0 shadow-2xl relative">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">🎬 SPECIAL_VIDEO.MP4</span>
+                <button onclick="closeModal('video-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-4 md:p-6 space-y-4 text-center">
+                <h3 class="font-pixel-heading text-xs md:text-sm text-purple-700">OUR SPECIAL BIRTHDAY VIDEO 🎥</h3>
+                <div class="relative w-full aspect-video bg-black rounded border-2 border-indigo-950 overflow-hidden shadow-inner">
+                    <iframe id="youtube-player-iframe" class="w-full h-full" src="https://www.youtube.com/embed/KFbbZmchZl4" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAKE MODAL -->
+    <div id="cake-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-md p-0 shadow-2xl relative">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">🎂 CAKE_WISH_MODULE.EXE</span>
+                <button onclick="closeModal('cake-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-6 text-center space-y-4">
+                <h3 class="font-pixel-heading text-sm text-pink-600">MAKE A BIRTHDAY WISH!</h3>
+                <div class="my-6 flex justify-center items-end space-x-6 h-20">
+                    <div onclick="extinguishCandle(0)" class="cursor-pointer flex flex-col items-center">
+                        <div id="candle-flame-0" class="text-2xl animate-flame">🔥</div>
+                        <div class="w-3 h-12 bg-pink-400 border border-indigo-950"></div>
+                    </div>
+                    <div onclick="extinguishCandle(1)" class="cursor-pointer flex flex-col items-center">
+                        <div id="candle-flame-1" class="text-3xl animate-flame">🔥</div>
+                        <div class="w-4 h-16 bg-yellow-300 border border-indigo-950"></div>
+                    </div>
+                    <div onclick="extinguishCandle(2)" class="cursor-pointer flex flex-col items-center">
+                        <div id="candle-flame-2" class="text-2xl animate-flame">🔥</div>
+                        <div class="w-3 h-12 bg-purple-400 border border-indigo-950"></div>
+                    </div>
+                </div>
+                <button onclick="blowAllCandles()" class="pixel-button pixel-button-primary w-full py-3 font-pixel-heading text-xs">
+                    🌬️ BLOW OUT CANDLES!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RADIO MODAL -->
+    <div id="radio-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-sm p-0 shadow-2xl relative bg-slate-900 text-indigo-100">
+            <div class="bg-indigo-900 border-b-2 border-indigo-950 p-2 flex justify-between items-center text-pink-300">
+                <span class="font-pixel-heading text-xs">📻 WINAMP_LOFI_PLAYER.EXE</span>
+                <button onclick="closeModal('radio-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-5 space-y-4 font-mono">
+                <div class="bg-indigo-950 p-3 border-2 border-indigo-800 rounded text-green-400 flex flex-col space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span>TRACK 01: BIRTHDAY_LOFI.MID</span>
+                        <span id="winamp-status">STOPPED</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleAudio(true)" class="pixel-button py-2 bg-indigo-800 text-white font-pixel-heading text-[10px]">▶ PLAY</button>
+                    <button onclick="toggleAudio(false)" class="pixel-button py-2 bg-indigo-800 text-white font-pixel-heading text-[10px]">❚❚ PAUSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEMORY MATCH GAME MODAL (3x3 GRID WITH SPEED TIMER) -->
+    <div id="game-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-xl p-0 shadow-2xl relative">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">🕹️ MEMORY_MATCH_3x3.BAT</span>
+                <button onclick="closeModal('game-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex justify-between items-center bg-indigo-100 p-2 border border-indigo-300 font-bold text-sm">
+                    <span>MATCHES: <span id="match-score" class="text-pink-600 font-pixel-heading text-xs">0</span> / 4</span>
+                    <span>⏱️ TIME: <span id="game-timer" class="text-purple-700 font-mono font-bold">0.0</span>s</span>
+                    <button onclick="initMatchGame()" class="pixel-button px-3 py-1 bg-pink-300 text-indigo-950 font-pixel-heading text-[10px]">
+                        RESTART 🔄
+                    </button>
+                </div>
+                <!-- 3x3 Grid -->
+                <div id="memory-grid" class="grid grid-cols-3 gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GIFT MODAL -->
+    <div id="gift-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-md p-0 shadow-2xl relative">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">🎁 UNBOX_PRESENT.ZIP</span>
+                <button onclick="closeModal('gift-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-6 text-center space-y-4">
+                <div class="text-4xl animate-bounce">🎁</div>
+                <h3 class="font-pixel-heading text-xs text-purple-700">LOVE LETTER FOR MY BBY</h3>
+                <div class="bg-purple-50 p-4 border-2 border-purple-200 text-left text-sm leading-relaxed text-indigo-950" id="modal-letter-body">
+                    Happy Birthday my bby! Thank you for always being there for me, literally always. Thank you for putting up with me, listening to all my shit, helping me with everything, and taking such good care of me. You’re always there whenever I need you and I really don’t take that for granted.
+
+You’re honestly like a gift that just showed up in my life and somehow became my favorite person ever. 🥹 You make me feel safe, loved, and cared for in a way I didn’t even know I needed.
+
+I appreciate you so much, bby. Even the little things you do, I notice them. I might not always say it, but they mean a lot to me.
+
+I hope you know that I’m always gonna be here for you too na. I wanna be there for your good days, your bad days, your random ass days, everything. I wanna keep making more memories with you and annoying you for a veryyyy long time. 😭
+
+I’m really lucky to have you. I love you more than I know how to say.
+
+Happy birthday again, bby ❤️
+Please stay with me forever okayyy 🥹🫶🏻
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDAR MODAL -->
+    <div id="calendar-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-sm p-0 shadow-2xl relative">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">📅 SPECIAL_DAY.CAL</span>
+                <button onclick="closeModal('calendar-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <div class="p-6 text-center space-y-3">
+                <div class="text-3xl">📅</div>
+                <h3 class="font-pixel-heading text-xs text-indigo-700">15 NOVEMBER</h3>
+                <div class="bg-indigo-50 p-4 border border-indigo-200 text-sm">
+                    The most special day because it's your birthday! 🎂🎉
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECRET MESSAGE MODAL -->
+    <div id="secret-modal" class="hidden fixed inset-0 bg-indigo-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-md p-0 shadow-2xl relative">
+
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">
+                    💌 SECRET_MESSAGE_UNLOCKED.SYS
+                </span>
+
+                <button 
+                    onclick="closeModal('secret-modal')" 
+                    class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">
+                    X
+                </button>
+            </div>
+
+            <div class="p-6 text-center space-y-4">
+
+                <!-- Header -->
+                <div class="text-5xl animate-bounce">
+                    💖👑🐈‍⬛
+                </div>
+
+                <h3 class="font-pixel-heading text-xs text-pink-600">
+                    ALL 5 HEARTS COLLECTED!
+                </h3>
+
+                <!-- SECRET LETTER IMAGE -->
+                <div class="bg-pink-100 p-3 border-2 border-pink-400 rounded">
+                    <img 
+                        src="photo/E78795D9-5C32-4000-A419-4632EE0890B5 2.JPG"
+                        alt="Secret Letter"
+                        class="w-full h-auto rounded"
+                    >
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="pixel-window w-full max-w-lg p-0 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div class="pixel-window-header p-2 flex justify-between items-center text-white">
+                <span class="font-pixel-heading text-xs">⚙️ SYSTEM_SETTINGS.CFG</span>
+                <button onclick="closeModal('settings-modal')" class="pixel-button px-2 py-0.5 text-xs text-pink-900 font-bold bg-pink-300">X</button>
+            </div>
+            <form onsubmit="saveCustomizations(event)" class="p-5 space-y-4 text-xs font-mono">
+                <div>
+                    <label class="block font-bold mb-1">YOUTUBE EMBED LINK 🎬</label>
+                    <input type="text" id="cfg-youtube" placeholder="https://www.youtube.com/embed/..." class="w-full p-2 border-2 border-indigo-950 rounded">
+                </div>
+                <button type="submit" class="pixel-button pixel-button-primary w-full py-3 font-pixel-heading text-xs">
+                    SAVE CONFIGURATION ✨
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG & PHOTO ALBUM
+        const photosList = [
+            "photo/IMG_5897 2.JPG",
+            "photo/IMG_7904.png",
+            "photo/IMG_6375 2.png",
+            "photo/IMG_5743.png",
+            "photo/IMG_0136 2.png",
+            "photo/IMG_1364 2.JPG",
+            "photo/IMG_8729 2.png",
+            "photo/IMG_7337 2.png",
+            "photo/IMG_2319 2.png",
+            "photo/IMG_8576 2.png",
+            "photo/IMG_2405 2.JPG",
+            "photo/IMG_5684.JPG",
+            "photo/IMG_2837.jpg"
+        ];
+        let photoIndex = 0;
+
+        function nextPhoto() {
+            photoIndex = (photoIndex + 1) % photosList.length;
+            document.getElementById('album-display-img').src = photosList[photoIndex];
+            playSFX(600, 'sine', 0.1);
+        }
+
+        // QUIZ QUESTIONS
+        const quizQuestions = [
+            {
+                q: "1. When is my birthday?",
+                options: ["14 February", "22 February", "10 March", "25 December"],
+                correct: 1
+            },
+            {
+                q: "2. Which high school did I attend?",
+                options: ["Satriwatwitaya School", "Suankularb School", "Satri Wat Rakhang School", "Triam Udom School"],
+                correct: 2
+            },
+            {
+                q: "3. Who do I love the most?",
+                options: ["chokunchicken", "joshua", "kevin", "Pidpee the cat 🐈‍⬛"],
+                correct: 0,
+                jokeChoice: 3
+            },
+            {
+                q: "4. Whose birthday is it today?",
+                options: ["my bby", "Taylor Swift", "Pidpee the cat", "Alien from Mars"],
+                correct: 0
+            },
+            {
+                q: "5. Who loves chokunchicken the most?",
+                options: ["Me of course! 💕", "Pidpee the cat", "No one", "A random neighbor"],
+                correct: 0
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let collectedHearts = 0;
+        let audioCtx = null;
+        let isMusicPlaying = false;
+        let melodyLoop = null;
+
+        // WEB AUDIO API SYNTHESIZER
+        function playSFX(freq, type = 'square', duration = 0.15) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        // โน้ตเพลง Happy Birthday (8-Bit Synth)
+        const melNotes = [
+            261, 261, 293, 261, 349, 329,
+            261, 261, 293, 261, 392, 349,
+            261, 261, 523, 440, 349, 329, 293,
+            466, 466, 440, 349, 392, 349
+        ];
+        let noteIdx = 0;
+
+        function toggleAudio(forceState) {
+            isMusicPlaying = forceState !== undefined ? forceState : !isMusicPlaying;
+            const status = document.getElementById('winamp-status');
+
+            if (isMusicPlaying) {
+                if (status) status.textContent = "PLAYING";
+                clearInterval(melodyLoop);
+                melodyLoop = setInterval(() => {
+                    playSFX(melNotes[noteIdx], 'triangle', 0.28);
+                    noteIdx = (noteIdx + 1) % melNotes.length;
+                }, 350);
+            } else {
+                if (status) status.textContent = "PAUSED";
+                clearInterval(melodyLoop);
+            }
+        }
+
+        function startQuizChallenge() {
+            playSFX(523, 'sine', 0.2);
+            document.getElementById('boot-screen').classList.add('hidden');
+            document.getElementById('quiz-modal').classList.remove('hidden');
+            currentQuizIndex = 0;
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const qData = quizQuestions[currentQuizIndex];
+            document.getElementById('quiz-progress-num').textContent = currentQuizIndex + 1;
+            document.getElementById('quiz-question-text').textContent = qData.q;
+            
+            const optionsBox = document.getElementById('quiz-options-container');
+            const feedbackBox = document.getElementById('quiz-feedback');
+            feedbackBox.classList.add('hidden');
+            optionsBox.innerHTML = '';
+
+            qData.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'pixel-button pixel-button-choice w-full py-3 px-4 font-pixel-heading text-xs text-indigo-950 text-left flex items-center space-x-2';
+                btn.innerHTML = `<span>[${String.fromCharCode(65 + optIdx)}]</span> <span>${optText}</span>`;
+                btn.onclick = () => handleQuizAnswer(optIdx);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function handleQuizAnswer(selectedIndex) {
+            const qData = quizQuestions[currentQuizIndex];
+            const feedbackBox = document.getElementById('quiz-feedback');
+
+            if (qData.jokeChoice !== undefined && selectedIndex === qData.jokeChoice) {
+                playSFX(783, 'sine', 0.3);
+                document.getElementById('pidpee-joke-modal').classList.remove('hidden');
+                return;
+            }
+
+            if (selectedIndex === qData.correct) {
+                playSFX(659, 'sine', 0.25);
+                feedbackBox.className = "text-center p-3 font-bold text-xs rounded border bg-emerald-100 text-emerald-800 border-emerald-400";
+                feedbackBox.innerHTML = "🎉 Correct answer! Good job my bby!";
+                feedbackBox.classList.remove('hidden');
+
+                setTimeout(() => {
+                    currentQuizIndex++;
+                    if (currentQuizIndex < quizQuestions.length) {
+                        renderQuizQuestion();
+                    } else {
+                        playSFX(880, 'sine', 0.4);
+                        confetti({ particleCount: 100, spread: 80 });
+                        document.getElementById('quiz-modal').classList.add('hidden');
+                    }
+                }, 700);
+            } else {
+                playSFX(150, 'sawtooth', 0.3);
+                feedbackBox.className = "text-center p-3 font-bold text-xs rounded border bg-pink-100 text-pink-800 border-pink-400 animate-bounce";
+                feedbackBox.innerHTML = "❌ Oops! Try again my bby!";
+                feedbackBox.classList.remove('hidden');
+            }
+        }
+
+        function closePidpeeJoke() {
+            document.getElementById('pidpee-joke-modal').classList.add('hidden');
+            currentQuizIndex++;
+            if (currentQuizIndex < quizQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                playSFX(880, 'sine', 0.4);
+                confetti({ particleCount: 100, spread: 80 });
+                document.getElementById('quiz-modal').classList.add('hidden');
+            }
+        }
+
+        // OVERLAPPING HEARTS GENERATION
+        function spawnOverlappingHearts() {
+            const container = document.getElementById('overlapping-hearts-layer');
+            container.innerHTML = '';
+            
+            const positions = [
+                { top: '15%', left: '10%' },
+                { top: '35%', left: '85%' },
+                { top: '65%', left: '20%' },
+                { top: '75%', left: '75%' },
+                { top: '45%', left: '50%' }
+            ];
+
+            positions.forEach((pos) => {
+                const h = document.createElement('div');
+                h.className = 'absolute text-3xl cursor-pointer animate-bounce hover:scale-150 transition drop-shadow-md pointer-events-auto';
+                h.style.top = pos.top;
+                h.style.left = pos.left;
+                h.innerHTML = '💖';
+
+                h.onclick = (e) => {
+                    e.stopPropagation();
+                    playSFX(880, 'sine', 0.2);
+                    h.remove();
+                    collectedHearts++;
+                    document.getElementById('hearts-num').textContent = collectedHearts;
+
+                    if (collectedHearts >= 5) {
+                        confetti({ particleCount: 120, spread: 90 });
+                        setTimeout(() => openModal('secret-modal'), 400);
+                    }
+                };
+                container.appendChild(h);
+            });
+        }
+
+        // DRAG AND DROP FEED PIDPEE SYSTEM
+        let draggedFood = "";
+        function dragFood(ev, food) {
+            draggedFood = food;
+            ev.dataTransfer.setData("text", food);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dropFood(ev) {
+            ev.preventDefault();
+            const speech = document.getElementById('pidpee-speech');
+            const edibleFood = ['🐟', '🥩', '🍖', '🦶🏻', '🪳'];
+
+            if (edibleFood.includes(draggedFood)) {
+                playSFX(880, 'sine', 0.3);
+                confetti({ particleCount: 40, spread: 50 });
+                if (draggedFood === '🦶🏻') {
+                    speech.textContent = `ง่ำๆ ตีนอร่อยมากก! 🦶🏻😋`;
+                } else if (draggedFood === '🪳') {
+                    speech.textContent = `กรอบกรุบ! แมลงสาบของโปรดด! 🪳🔥`;
+                } else {
+                    speech.textContent = `Aww Yum! ${draggedFood} 💖`;
+                }
+            } else {
+                playSFX(150, 'sawtooth', 0.3);
+                speech.textContent = `Eww! ${draggedFood} ไม่กินน! 😿`;
+            }
+
+            speech.classList.remove('hidden');
+            setTimeout(() => speech.classList.add('hidden'), 2000);
+        }
+
+        // MEMORY MATCH GAME 3x3 WITH SPEED TIMER
+        let flipped = [];
+        let matched = 0;
+        let gameTimerInterval = null;
+        let startTime = 0;
+
+        function initMatchGame() {
+            matched = 0;
+            flipped = [];
+            clearInterval(gameTimerInterval);
+            document.getElementById('match-score').textContent = '0';
+            document.getElementById('game-timer').textContent = '0.0';
+            
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+
+            const gamePhotos = [
+                "photo/IMG_1363 2.JPG",
+                "photo/IMG_7981 2.png",
+                "photo/IMG_8576 2.png",
+                "photo/IMG_3783 2.JPG"
+            ];
+
+            const deck = [...gamePhotos, ...gamePhotos, "BONUS"].sort(() => Math.random() - 0.5);
+
+            deck.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'perspective-1000 h-24 cursor-pointer';
+                if (item === "BONUS") {
+                    card.innerHTML = `
+                        <div class="card-inner relative w-full h-full transform-style-3d transition-transform duration-300 rounded border-2 border-indigo-950" data-url="BONUS">
+                            <div class="absolute inset-0 bg-indigo-300 flex items-center justify-center backface-hidden font-pixel-heading text-xs text-indigo-900">💖</div>
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-pink-300 flex items-center justify-center font-bold text-xs text-pink-900 border-2 border-pink-500">
+                                ⭐ BONUS!
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="card-inner relative w-full h-full transform-style-3d transition-transform duration-300 rounded border-2 border-indigo-950" data-url="${item}">
+                            <div class="absolute inset-0 bg-indigo-300 flex items-center justify-center backface-hidden font-pixel-heading text-xs text-indigo-900">💖</div>
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 overflow-hidden">
+                                <img src="${item}" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    `;
+                }
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+
+            startTime = Date.now();
+            gameTimerInterval = setInterval(() => {
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                document.getElementById('game-timer').textContent = elapsed;
+            }, 100);
+        }
+
+        function flipCard(card) {
+            const inner = card.querySelector('.card-inner');
+            if (flipped.length >= 2 || inner.classList.contains('rotate-y-180')) return;
+
+            playSFX(440, 'square', 0.1);
+            inner.classList.add('rotate-y-180');
+
+            if (inner.dataset.url === "BONUS") {
+                playSFX(880, 'sine', 0.3);
+                confetti({ particleCount: 30, spread: 40 });
+                return;
+            }
+
+            flipped.push(inner);
+
+            if (flipped.length === 2) {
+                const [c1, c2] = flipped;
+                if (c1.dataset.url === c2.dataset.url) {
+                    playSFX(659, 'sine', 0.2);
+                    matched++;
+                    document.getElementById('match-score').textContent = matched;
+                    flipped = [];
+
+                    if (matched === 4) {
+                        clearInterval(gameTimerInterval);
+                        const finalTime = document.getElementById('game-timer').textContent;
+                        playSFX(880, 'sine', 0.5);
+                        confetti({ particleCount: 120, spread: 90 });
+                        setTimeout(() => {
+                            alert(`🎉 ยินดีด้วย! คุณจับคู่การ์ดครบทั้งหมดโดยใช้เวลาไป ${finalTime} วินาที! ⏱️✨`);
+                        }, 300);
+                    }
+                } else {
+                    setTimeout(() => {
+                        c1.classList.remove('rotate-y-180');
+                        c2.classList.remove('rotate-y-180');
+                        flipped = [];
+                    }, 800);
+                }
+            }
+        }
+
+        function interactPidpee() {
+            playSFX(783, 'sine', 0.2);
+            const speech = document.getElementById('pidpee-speech');
+            speech.textContent = "Meow~ 🐈‍⬛💕";
+            speech.classList.remove('hidden');
+            setTimeout(() => speech.classList.add('hidden'), 1200);
+        }
+
+        function openModal(id) {
+            playSFX(440, 'square', 0.1);
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'game-modal') initMatchGame();
+        }
+        function closeModal(id) {
+            playSFX(330, 'square', 0.1);
+            document.getElementById(id).classList.add('hidden');
+            if (id === 'game-modal') clearInterval(gameTimerInterval);
+        }
+        function toggleBootScreen() {
+            document.getElementById('boot-screen').classList.toggle('hidden');
+        }
+
+        function extinguishCandle(idx) {
+            document.getElementById(`candle-flame-${idx}`).classList.add('hidden');
+        }
+        function blowAllCandles() {
+            for (let i = 0; i < 3; i++) extinguishCandle(i);
+            confetti({ particleCount: 100, spread: 80 });
+        }
+
+        function saveCustomizations(e) {
+            e.preventDefault();
+            const url = document.getElementById('cfg-youtube').value;
+            if (url) {
+                document.getElementById('youtube-player-iframe').src = url;
+            }
+            closeModal('settings-modal');
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('system-time').textContent = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        window.onload = function() {
+            spawnOverlappingHearts();
+        };
+    </script>
+</body>
+</html>
+
+```
