@@ -104,6 +104,13 @@
         .food-item:active {
             cursor: grabbing;
         }
+                /* Mobile sidebar alignment */
+        @media (max-width: 768px) {
+            #desktop-workspace > div:first-child {
+                align-items: stretch;
+            }
+        }
+        
     </style>
 </head>
 <body class="min-h-screen text-indigo-950 relative flex flex-col justify-between selection:bg-pink-300">
@@ -948,5 +955,3 @@ Please stay with me forever okayyy 🥹🫶🏻
     </script>
 </body>
 </html>
-
-```
