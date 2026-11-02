@@ -104,10 +104,287 @@
         .food-item:active {
             cursor: grabbing;
         }
-                /* Mobile sidebar alignment */
-        @media (max-width: 768px) {
+                /* =====================================
+           RESPONSIVE DESIGN - TABLET & MOBILE
+           Keep the original Y2K desktop style
+        ===================================== */
+
+        /* Tablet and mobile */
+        @media screen and (max-width: 768px) {
+
+            /* General layout */
+            body {
+                min-width: 320px;
+                overflow-x: hidden;
+            }
+
+            main {
+                padding: 12px !important;
+                justify-content: flex-start !important;
+            }
+
+            /* Header */
+            header {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px !important;
+            }
+
+            header > div:first-child {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            header > div:first-child > span {
+                font-size: 12px !important;
+                line-height: 1.5;
+                text-align: right;
+            }
+
+            header > div:last-child {
+                width: 100%;
+                justify-content: space-between;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+
+            #hearts-counter {
+                padding: 5px 8px;
+            }
+
+            /* Desktop workspace */
+            #desktop-workspace {
+                display: flex !important;
+                flex-direction: column;
+                gap: 14px !important;
+                margin-top: 10px;
+            }
+
+            /* Sidebar shortcuts: two columns */
             #desktop-workspace > div:first-child {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px !important;
+                width: 100%;
                 align-items: stretch;
+            }
+
+            #desktop-workspace > div:first-child > div {
+                width: 100% !important;
+                min-width: 0;
+                min-height: 105px;
+                justify-content: center;
+                padding: 10px 5px !important;
+            }
+
+            #desktop-workspace > div:first-child > div span {
+                overflow-wrap: anywhere;
+            }
+
+            /* Main virtual room */
+            #desktop-workspace > div:last-child {
+                width: 100%;
+                min-width: 0;
+                gap: 12px !important;
+            }
+
+            #desktop-workspace > div:last-child > div:first-child {
+                width: 100%;
+            }
+
+            /* Virtual room inner area */
+            #desktop-workspace > div:last-child > div:first-child > div:last-child {
+                min-height: 0 !important;
+                padding: 12px !important;
+                gap: 16px;
+            }
+
+            /* Calendar and decorations */
+            #desktop-workspace > div:last-child > div:first-child > div:last-child > div:first-child {
+                gap: 8px;
+            }
+
+            /* Photo album */
+            #album-display-img {
+                height: 150px;
+                max-width: 100%;
+            }
+
+            /* Food bar */
+            .food-item {
+                display: inline-block;
+                padding: 4px;
+                font-size: 24px;
+            }
+
+            /* Cake, cat and radio row */
+            #desktop-workspace > div:last-child > div:first-child > div:last-child > div:last-child {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                align-items: flex-end;
+                gap: 16px;
+            }
+
+            /* System status bar */
+            #desktop-workspace > div:last-child > div:last-child {
+                gap: 8px;
+                flex-wrap: wrap;
+                line-height: 1.5;
+            }
+
+            /* All modal windows */
+            .pixel-window {
+                max-width: 100%;
+            }
+
+            body > div[id$="-modal"] {
+                padding: 10px !important;
+                overflow-y: auto;
+            }
+
+            body > div[id$="-modal"] > .pixel-window {
+                width: 100%;
+                max-height: 90vh;
+                max-height: 90dvh;
+                overflow-y: auto;
+                margin: auto;
+            }
+
+            /* Quiz */
+            #quiz-modal .p-6 {
+                padding: 16px !important;
+            }
+
+            #quiz-question-text {
+                font-size: 11px;
+                line-height: 1.8;
+            }
+
+            #quiz-options-container button {
+                font-size: 10px;
+                line-height: 1.6;
+            }
+
+            /* Memory game */
+            #memory-grid {
+                gap: 6px;
+            }
+
+            #memory-grid > div {
+                height: 80px;
+            }
+
+            /* Gift letter */
+            #modal-letter-body {
+                max-height: 45vh;
+                overflow-y: auto;
+                overflow-wrap: anywhere;
+            }
+
+            /* Secret letter image */
+            #secret-modal img {
+                max-height: 60vh;
+                object-fit: contain;
+            }
+
+            /* Video */
+            #video-modal iframe {
+                width: 100%;
+            }
+
+            /* Boot screen */
+            #boot-screen > div {
+                padding: 16px !important;
+            }
+
+            #boot-screen .min-h-\[260px\] {
+                min-height: 220px;
+                padding: 16px !important;
+            }
+        }
+
+
+        /* Small mobile screens */
+        @media screen and (max-width: 480px) {
+
+            /* Header text */
+            header > div:first-child > span {
+                font-size: 9px !important;
+            }
+
+            header .font-pixel-heading {
+                letter-spacing: 0;
+            }
+
+            header > div:last-child {
+                font-size: 11px;
+            }
+
+            #hearts-counter span.font-pixel-heading {
+                font-size: 8px;
+            }
+
+            /* Sidebar shortcuts */
+            #desktop-workspace > div:first-child > div {
+                min-height: 100px;
+            }
+
+            #desktop-workspace > div:first-child > div span:first-of-type {
+                font-size: 8px;
+                line-height: 1.5;
+            }
+
+            /* Room window title */
+            #desktop-workspace > div:last-child .pixel-window-header span.font-pixel-heading {
+                font-size: 9px;
+                overflow-wrap: anywhere;
+            }
+
+            /* Calendar */
+            #cal-day {
+                font-size: 24px;
+            }
+
+            /* Photo album */
+            #album-display-img {
+                height: 130px;
+            }
+
+            /* Food bar */
+            .food-item {
+                font-size: 21px;
+            }
+
+            /* Cake, cat and radio */
+            #pidpee-cat-box .text-4xl {
+                font-size: 36px;
+            }
+
+            /* Game information row */
+            #game-modal .p-5 > div:first-child {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            #game-modal .p-5 > div:first-child > span {
+                font-size: 11px;
+            }
+
+            #memory-grid > div {
+                height: 68px;
+            }
+
+            /* Modal content */
+            .pixel-window .p-6 {
+                padding: 14px !important;
+            }
+
+            /* Boot screen title */
+            #boot-screen .text-pink-300 {
+                font-size: 16px;
+                line-height: 1.8;
             }
         }
         
